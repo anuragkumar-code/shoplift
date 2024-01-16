@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const users = [
 { 
@@ -31,7 +32,7 @@ async function registerUser(firstname,lastname,mobile,email, password){
         });
     });
  
-    const newUser = { id: users.length + 1, firstname:firstname, lastname:lastname, mobile:mobile, email:email, password: passwordHash };
+    const newUser = { id: users.length + 1, firstname:firstname, lastname:lastname, mobile:mobile, email:email, password: hashedPassword };
     users.push(newUser);
 
     console.log(newUser);
@@ -39,8 +40,38 @@ async function registerUser(firstname,lastname,mobile,email, password){
     return newUser;
 }
 
+const secretKey = 'my_jwt_key';
+
+async function loginUser(email, password) {
+    const user = users.find(user => user.email === email);
+
+    if (!user) {
+        throw new Error('User not found.');
+    }
+
+
+    const isPasswordValid = await new Promise((resolve, reject) => {
+        bcrypt.compare(password, user.passwordHash, (err, result) => {
+            if (err) {
+                reject(false);
+            } else {
+                resolve(true);
+            }
+        });
+    });
+
+    if (!isPasswordValid) {
+        throw new Error('Invalid password.');
+    }
+
+    const token = jwt.sign({ userId: user.id, email: user.email }, secretKey, { expiresIn: '1h' });
+
+    return { user, token };
+}
+
 
 
 module.exports = {
-    registerUser
+    registerUser,
+    loginUser
 };
