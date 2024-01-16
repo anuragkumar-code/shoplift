@@ -1,10 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const dotenv = require('dotenv').config();
 const userRoutes = require('./routes/authRoutes');
 
 const app = express();
-const port = 4000;
+const port = process.env.NODE_SERVER_PORT;
 
 app.use(cors());
 
@@ -21,6 +22,8 @@ app.get('/', (req, res) => {
 
 app.use('/auth', userRoutes);
 
+// console.log(port)
+// console.log(`Environment variable NODE_SERVER_PORT: ${process.env.NODE_SERVER_PORT}`);
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+  console.log(`Server is running on port ${port}`);
 });

@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv').config();
+
 
 const users = [
 { 
@@ -23,7 +25,7 @@ async function registerUser(firstname,lastname,mobile,email, password){
         throw new Error('Email id is already registered.');
     }
 
-    const saltRounds = 10;
+    const saltRounds = process.env.SALT_ROUNDS;
     let hashedPassword;
 
     bcrypt.genSalt(saltRounds, function(err, salt) {
@@ -40,7 +42,7 @@ async function registerUser(firstname,lastname,mobile,email, password){
     return newUser;
 }
 
-const secretKey = 'my_jwt_key';
+const secretKey = process.env.JWT_KEY;
 
 async function loginUser(email, password) {
     const user = users.find(user => user.email === email);
