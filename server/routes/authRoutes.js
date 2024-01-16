@@ -27,6 +27,16 @@ router.post('/login', async (req, res) => {
     }
 });
 
+router.post('/change-password', async (req, res) => {
+    try {
+        const { email, oldPassword, newPassword } = req.body;
+        await changePassword(email, oldPassword, newPassword);
+        res.status(200).json({ message: 'Password changed successfully.' });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 router.get('/test', async(req,res) => {
     res.send("hello from api");
 });

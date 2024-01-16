@@ -49,7 +49,6 @@ async function loginUser(email, password) {
         throw new Error('User not found.');
     }
 
-
     const isPasswordValid = await new Promise((resolve, reject) => {
         bcrypt.compare(password, user.passwordHash, (err, result) => {
             if (err) {
@@ -69,9 +68,48 @@ async function loginUser(email, password) {
     return { user, token };
 }
 
+async function changePassword(email, oldPassword, newPassword){
+    const user = users.find(user => user.email === email);
+
+    if (!user) {
+        throw new Error('User not found.');
+    }
+
+    const isPasswordValid = await new Promise((resolve, reject) => {
+        bcrypt.compare(oldPassword, user.passwordHash, (err, result) => {
+            if (err) {
+                reject(false);
+            } else {
+                resolve(true);
+            }
+        });
+    });
+
+    if (!isPasswordValid) {
+        throw new Error('Incorrect old password.');
+    }
+
+    const saltRounds = 10;
+
+    let newHashedPassword;
+
+    bcrypt.genSalt(saltRounds, function(err, salt) {
+        bcrypt.hash(newPassword, salt, function(err, hash) {
+            newHashedPassword = hash;
+        });
+    });
+
+    // Update the user's password in the users array
+    user.passwordHash = newHashedPassword;
+
+    console.log('Password changed successfully.');
+
+}
+
 
 
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    changePassword
 };
