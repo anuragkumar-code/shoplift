@@ -23,11 +23,11 @@ async function registerUser(firstname,lastname,mobile,email, password){
     }
 
     const saltRounds = 10;
-    // const passwordHash = await bcrypt.hash(password, saltRounds);
+    let hashedPassword;
 
-    const passwordHash = bcrypt.genSalt(saltRounds, function(err, salt) {
-        bcrypt.hash(myPlaintextPassword, salt, function(err, hash) {
-            return hash
+    bcrypt.genSalt(saltRounds, function(err, salt) {
+        bcrypt.hash(password, salt, function(err, hash) {
+            hashedPassword = hash;
         });
     });
  
