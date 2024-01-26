@@ -2,7 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv').config();
+
+//import all routes after this only
 const userRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 const port = process.env.NODE_SERVER_PORT;
@@ -21,6 +24,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/auth', userRoutes);
+app.use('/admin', adminRoutes);
 
 // console.log(port)
 // console.log(`Environment variable NODE_SERVER_PORT: ${process.env.NODE_SERVER_PORT}`);

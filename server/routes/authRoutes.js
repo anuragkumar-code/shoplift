@@ -14,7 +14,7 @@ router.post('/login-with-otp', userController.loginWithOtp);                    
 
 
 router.get('/test', async(req,res) => {
-    res.send("hello from router");
+    res.send("hello from auth router");
 });
 
 
