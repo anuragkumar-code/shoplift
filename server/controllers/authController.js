@@ -2,24 +2,19 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const validator = require('validator');
 
+const db = require('../db');
+const { findUserByEmail,findUserByMobile } = require('../models/userModel');
+
 const secretKey = process.env.JWT_KEY;
 
-const users = [
-{ 
-    id: 1, 
-    firstname: 'anurag',
-    lastname: 'kumar',
-    mobile: '7073521003',
-    email: 'abc@mail.com',
-    passwordHash: '$2a$10$a/JnUsEn6J5ptWfPwz06FONY2CGgQzynPGg9T99gd3YeBeyEaUemm',    //password
-    otp: 123456
-}];
+
 
 //function to register new user
 const registerUser = async (req,res) => {
     // console.log(req.body);
     const fetched = req.body;
     try {
+
         if (!fetched.firstname || !validator.isAlpha(fetched.firstname)) {
             throw new Error('Invalid or missing first name. It should only contain letters.');
         }
@@ -40,36 +35,50 @@ const registerUser = async (req,res) => {
             throw new Error('Missing password.');
         }
 
-        if (users.some(user => user.mobile === fetched.mobile)) {
-            throw new Error('Mobile number is already registered.');
+        const [emailRows, emailFields] = await findUserByEmail(fetched.email);
+
+        if (emailRows.length > 0) {
+            throw new Error('Email already exists.');
         }
-    
-        if (users.some(user => user.email === fetched.email)) {
-            throw new Error('Email id is already registered.');
+
+        const [mobileRows, mobileFields] = await findUserByMobile(fetched.mobile);
+
+        if (mobileRows.length > 0) {
+            throw new Error('Mobile number already exists.');
         }
 
         const saltRounds = process.env.SALT_ROUNDS;
-
-        let hashedPassword;
-    
-        bcrypt.genSalt(saltRounds, function(err, salt) {
-            bcrypt.hash(fetched.password, salt, function(err, hash) {
-                hashedPassword = hash;
-            });
-        });
+        const salt = bcrypt.genSaltSync(parseInt(saltRounds));
+        const hashedPassword = await bcrypt.hash(fetched.password, salt);
 
         const newUser = { 
-            id: users.length + 1,
             firstname:fetched.firstname,
             lastname:fetched.lastname,
             mobile:fetched.mobile,
-            email:fetched.email,
-            password:fetched.hashedPassword 
+            password:hashedPassword, 
+            password_decode:fetched.password, 
+            email:fetched.email
         };
 
+        const insertUserQuery = `INSERT INTO users (firstname, lastname, mobile, password, password_decode, email) VALUES (?, ?, ?, ?, ?, ?)`;
+        
+        const insertUserResult = await db.promise().query(insertUserQuery, [
+            newUser.firstname,
+            newUser.lastname,
+            newUser.mobile,
+            newUser.password,
+            newUser.password_decode,
+            newUser.email
+        ]);
 
-        res.status(201).json({ message: 'User registered successfully', newUser });
+        // console.log(insertUserQuery);
+        console.log(insertUserResult);
 
+        if (insertUserResult[0].affectedRows === 1) {
+            res.status(201).json({ message: 'User registered successfully', newUser });
+        } else {
+            throw new Error('Failed to register user');
+        }
 
     } catch (error) {
         res.status(400).json({ error: error.message });

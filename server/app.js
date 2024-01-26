@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv').config();
+const db = require('./db'); 
 
 //import all routes after this only
 const userRoutes = require('./routes/authRoutes');
@@ -28,6 +29,17 @@ app.use('/admin', adminRoutes);
 
 // console.log(port)
 // console.log(`Environment variable NODE_SERVER_PORT: ${process.env.NODE_SERVER_PORT}`);
+
+
+db.connect((err) => {
+  if (err) {
+    console.error('Error connecting to database:', err);
+  } else {
+    console.log('Connected to database');
+  }
+});
+
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
