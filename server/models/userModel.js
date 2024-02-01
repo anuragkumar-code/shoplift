@@ -25,6 +25,10 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false
   },
+  password_decode: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
   email: {
     type: DataTypes.STRING,
     allowNull: false
@@ -43,16 +47,4 @@ const User = sequelize.define('User', {
 });
 
 
-const findUserByEmail = async (email) => {
-  return User.findOne({ where: { email } });
-};
-
-const findUserByMobile = async (mobile) => {
-  return User.findOne({ where: { mobile } });
-};
-
-module.exports = {
-  User,
-  findUserByEmail,
-  findUserByMobile,
-};
+module.exports = User;

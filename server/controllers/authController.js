@@ -57,7 +57,8 @@ const registerUser = async (req,res) => {
 
         const createdUser = await User.create(newUser);
 
-        // console.log(insertUserQuery);
+
+        /// console.log(insertUserQuery);
         console.log(createdUser);
 
         if (createdUser) {
