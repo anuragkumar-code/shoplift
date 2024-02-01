@@ -1,12 +1,9 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const validator = require('validator');
-
-const db = require('../db');
-const { findUserByEmail,findUserByMobile } = require('../models/userModel');
-
+const Sequelize = require('sequelize');
+const User = require('../models/userModel');
 const secretKey = process.env.JWT_KEY;
-
 
 
 //function to register new user
@@ -35,15 +32,13 @@ const registerUser = async (req,res) => {
             throw new Error('Missing password.');
         }
 
-        const [emailRows, emailFields] = await findUserByEmail(fetched.email);
-
-        if (emailRows.length > 0) {
+        const emailUser = await User.findOne({ where: { email: fetched.email } });
+        if (emailUser) {
             throw new Error('Email already exists.');
         }
 
-        const [mobileRows, mobileFields] = await findUserByMobile(fetched.mobile);
-
-        if (mobileRows.length > 0) {
+        const mobileUser = await User.findOne({ where: { mobile: fetched.mobile } });
+        if (mobileUser) {
             throw new Error('Mobile number already exists.');
         }
 
@@ -60,22 +55,13 @@ const registerUser = async (req,res) => {
             email:fetched.email
         };
 
-        const insertUserQuery = `INSERT INTO users (firstname, lastname, mobile, password, password_decode, email) VALUES (?, ?, ?, ?, ?, ?)`;
-        
-        const insertUserResult = await db.promise().query(insertUserQuery, [
-            newUser.firstname,
-            newUser.lastname,
-            newUser.mobile,
-            newUser.password,
-            newUser.password_decode,
-            newUser.email
-        ]);
+        const createdUser = await User.create(newUser);
 
         // console.log(insertUserQuery);
-        console.log(insertUserResult);
+        console.log(createdUser);
 
-        if (insertUserResult[0].affectedRows === 1) {
-            res.status(201).json({ message: 'User registered successfully', newUser });
+        if (createdUser) {
+            res.status(201).json({ message: 'User registered successfully', createdUser });
         } else {
             throw new Error('Failed to register user');
         }
