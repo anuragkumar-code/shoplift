@@ -1,12 +1,19 @@
 const express = require('express');
 const router = express.Router();
 
-const adminController = require('../controllers/adminController');
+//import all middlewares here only
 const adminMiddleware = require('../middleware/adminMiddleware');
+const jwtMiddleware = require('../middleware/jwtMiddleware');
+
+
+//import all controllers here only
+const adminController = require('../controllers/adminController');
 
 
 
-router.post('/dashboard', adminMiddleware, adminController.getDashboard);
+
+// all api's defined after this only
+router.post('/dashboard', jwtMiddleware, adminMiddleware, adminController.getDashboard);
 
 
 router.get('/test', async(req,res) => {
