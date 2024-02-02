@@ -11,8 +11,30 @@ const jwtMiddleware = (req, res, next) => {
 
     jwt.verify(token, secretKey, (err, decoded) => {
         if (err) {
-            return res.status(401).json({ message: 'Invalid token' });
+            if (err.name === 'TokenExpiredError') {
+
+                const currentTimestamp = Date.now();
+                const tokenExpirationTimestamp = decoded.exp * 1000; 
+                const refreshThreshold = 15 * 60 * 1000;             //setting token refresh to 15 mins
+
+                if (currentTimestamp < tokenExpirationTimestamp - refreshThreshold) {
+
+                    const newToken = jwt.sign(decoded, secretKey, { expiresIn: '1h' });
+
+                    req.headers.authorization = newToken;
+
+                    req.user = decoded;
+                    next();
+                } else {
+
+                    return res.status(401).json({ message: 'Token expired' });
+                }
+            } else {
+
+                return res.status(401).json({ message: 'Invalid token' });
+            }
         } else {
+
             req.user = decoded;
             next();
         }
