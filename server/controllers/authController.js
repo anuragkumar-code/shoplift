@@ -75,45 +75,34 @@ const registerUser = async (req,res) => {
 
 //function to login users with password
 const loginUser = async (req, res) => {
-    const fetched = req.body;
-
+    const { email, password } = req.body;
+  
     try {
-        if (!fetched.email || !validator.isEmail(fetched.email)) {
-            throw new Error('Invalid or missing email address.');
-        }
-
-        if (!fetched.password) {
-            throw new Error('Missing password.');
-        }
-
-        const user = users.find(user => user.email === fetched.email);
-
-        if (!user) {
-            throw new Error('User not found.');
-        }
-
-        let isPasswordValid = false;
-
-        isPasswordValid = await new Promise((resolve, reject) => {
-            bcrypt.compare(fetched.password, user.passwordHash, (err, result) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(result);
-                }
-            });
-        });
-
-        if (!isPasswordValid) {
-            throw new Error('Invalid password.');
-        }
-    
-        const token = jwt.sign({ userId: user.id, email: user.email, role: 'A' }, secretKey, { expiresIn: '1h' });
-
-        res.status(200).json({ message: "All good.", token });
-        
+      if (!email || !validator.isEmail(email)) {
+        throw new Error('Invalid or missing email address.');
+      }
+  
+      if (!password) {
+        throw new Error('Missing password.');
+      }
+  
+      const user = await User.findOne({ where: { email } });
+  
+      if (!user) {
+        throw new Error('User not found.');
+      }
+  
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+  
+      if (!isPasswordValid) {
+        throw new Error('Invalid password.');
+      }
+  
+      const token = jwt.sign({ userId: user.id, email: user.email, role: 'A' }, secretKey, { expiresIn: '1h' });
+  
+      res.status(200).json({ message: "All good.", token });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+      res.status(400).json({ error: error.message });
     }
 };
 
